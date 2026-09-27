@@ -3,23 +3,20 @@ const alunoService = require("../services/AlunoService");
 class AlunoController{
 
     async findMany(request, response){
-        let {page, pageSize} = request.query;
-        page ||= 1;
-        pageSize ||= 10;
+        let {page, pageSize, orderBy, order} = request.query;
+        page = Number(page) || 1;
+        pageSize = Number(pageSize) || 10;
 
-
-        const alunos = await alunoService.findMany(page, pageSize);
-        return response.status(200).json({alunos});
+        const {alunos, total} = await alunoService.findMany(page, pageSize, orderBy, order);
+        return response.status(200).json({alunos, total});
     }
 
-    async create(request, response){
+    async findById(request, response){
         try{
-            const aluno = await alunoService.create(request.body);
-            return response.status(201).json({aluno});
+            const {id} = request.params;
+            const aluno = await alunoService.findById(id);
+            return response.status(200).json(aluno);
         }catch(e){
-            return response.status(e.statusCode).json({error: e.message});
+            return response.status(e.statusCode).json({message: e.message});
         }
     }
-}
-
-module.exports = new AlunoController();
