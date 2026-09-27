@@ -29,3 +29,30 @@ class AlunoService{
         }
         return aluno;
     }
+
+    async create(aluno){
+        const {nome, email} = aluno;
+        if(!nome || !email){
+            throw new AlunoInvalidoError();
+        }
+        //create = insert
+        //update = update
+        //delete = delete
+        //findMany = select * from
+        const novoAluno = await prisma.aluno.create({data:aluno});
+
+        return novoAluno;
+    }
+
+    async update(id, dados){
+        await this.findById(id); 
+
+        try{
+            return await prisma.aluno.update({ where: { id }, data: dados });
+        }catch(e){
+            if(e.code === "P2002"){ 
+                throw new EmailDuplicadoError();
+            }
+            throw e;
+        }
+    }
