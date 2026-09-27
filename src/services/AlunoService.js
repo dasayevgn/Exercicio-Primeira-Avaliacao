@@ -1,30 +1,31 @@
 const prisma = require("../databases/prisma");
 const AlunoInvalidoError = require("../errors/AlunoInvalidoError");
+const AlunoNaoEncontradoError = require("../errors/AlunoNaoEncontradoError");
+const EmailDuplicadoError = require("../errors/EmailDuplicadoError");
 
 class AlunoService{
 
-    async findMany(page, pageSize){
-        //SELECT * FROM alunos
-        const alunos = await prisma.aluno.findMany({
-            skip: (page-1)*pageSize,
-            take: Number(pageSize)
-        });
-        return alunos;
+    async findMany(page, pageSize, orderBy, order){
+        const camposValidos = ["id", "nome", "email", "createdAt", "updatedAt"];
+        const campo = camposValidos.includes(orderBy) ? orderBy : "id";
+        const direcao = ["asc", "desc"].includes(order) ? order : "asc";
+
+        const [alunos, total] = await Promise.all([
+            prisma.aluno.findMany({
+                skip: (page - 1) * pageSize,
+                take: Number(pageSize),
+                orderBy: { [campo]: direcao }
+            }),
+            prisma.aluno.count()
+        ]);
+
+        return { alunos, total };
     }
 
-    async create(aluno){
-        const {nome, email} = aluno;
-        if(!nome || !email){
-            throw new AlunoInvalidoError();
+    async findById(id){
+        const aluno = await prisma.aluno.findUnique({ where: { id } });
+        if(!aluno){
+            throw new AlunoNaoEncontradoError();
         }
-        //create = insert
-        //update = update
-        //delete = delete
-        //findMany = select * from
-        const novoAluno = await prisma.aluno.create({data:aluno});
-
-        return novoAluno;
+        return aluno;
     }
-}
-
-module.exports = new AlunoService();
