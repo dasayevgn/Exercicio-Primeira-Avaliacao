@@ -56,3 +56,11 @@ class AlunoService{
             throw e;
         }
     }
+
+    async delete(id){
+        await this.findById(id); 
+        await prisma.aluno.delete({ where: { id } });
+    }
+}
+
+module.exports = new AlunoService();
